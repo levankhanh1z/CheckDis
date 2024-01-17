@@ -1,0 +1,33 @@
+-- Lấy tham chiếu đến HttpService
+local HttpService = game:GetService("HttpService")
+
+-- Dãy địa chỉ IP hoặc domain của Discord mà bạn muốn chặn
+local discordAddresses = {
+    "discord.com",
+    "api.discord.com",
+    -- Thêm các địa chỉ khác nếu cần
+}
+
+-- Hàm để chặn các yêu cầu đến các địa chỉ của Discord
+local function blockDiscordRequests()
+    -- Ghi đè phương thức RequestAsync để kiểm soát yêu cầu
+    local originalRequestAsync = HttpService.RequestAsync
+
+    HttpService.RequestAsync = function(self, requestInfo, ...)
+        local url = requestInfo.Url
+
+        -- Kiểm tra xem url có chứa địa chỉ Discord không
+        for _, address in ipairs(discordAddresses) do
+            if string.find(url, address) then
+                warn("Chặn yêu cầu đến Discord: " .. url)
+                return {} -- Trả về một table rỗng để ngăn chặn yêu cầu
+            end
+        end
+
+        -- Nếu không phải là yêu cầu đến Discord, tiếp tục thực hiện yêu cầu bình thường
+        return originalRequestAsync(self, requestInfo, ...)
+    end
+end
+
+-- Gọi hàm để chặn các yêu cầu đến Discord
+blockDiscordRequests()
